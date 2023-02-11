@@ -1,0 +1,17 @@
+{
+  "discord": {
+    "token": "Your Discord Bot Token",
+    "prefix": "Set prefix",
+    "admin_role": "Administrator",
+    "mod_role": "Moderator",
+  },
+  "database": {
+    "host": "host",
+    "user": "user",
+    "password": "secretpassword",
+    "database": "database"
+  },
+  "openai" {
+  	"openai_key": "openai api key"
+  }
+}

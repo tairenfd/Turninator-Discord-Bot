@@ -1,0 +1,10 @@
+bot_venv
+ultra_replies
+__pycache__
+*.pyc
+config.json
+logs
+images
+.isort.cfg
+.flake8
+black.ini
