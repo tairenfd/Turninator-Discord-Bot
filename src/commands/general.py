@@ -40,7 +40,7 @@ class Replies(commands.Cog):
     async def ultrared(self, ctx: commands.Context) -> None:
         """A command that generates AI response for Ultrared's quotes"""
         try:
-            with open("commands/ultra_replies", "r") as file:
+            with open("src/commands/ultra_replies", "r") as file:
                 file_contents = file.read()
         except Exception as e:
             logger.info(f"Something went wrong. Error: {e}")
@@ -68,7 +68,7 @@ class Replies(commands.Cog):
             max_tokens=2000,
         )
         content = response.choices[0]["text"]
-        file = discord.File("images/ultrared.png", filename="ultrared.png")
+        file = discord.File("src/images/ultrared.png", filename="ultrared.png")
         embed = create_embed(
             title="Ultrared AI",
             description=content,
@@ -81,7 +81,7 @@ class Replies(commands.Cog):
     async def tierlist(self, ctx: commands.Context) -> None:
         """A command that sends an image file"""
         await ctx.send(
-            file=discord.File("images/tierlist.png", filename="tierlist.png")
+            file=discord.File("src/images/tierlist.png", filename="tierlist.png")
         )
 
     @commands.hybrid_command(description="bot uptime", with_app_command=True)

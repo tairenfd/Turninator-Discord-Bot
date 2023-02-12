@@ -29,7 +29,7 @@ import json
 '''
 
 # load json data
-with open("config/config.json") as f:
+with open("src/config/config.json") as f:
     data = json.load(f)
 
 # assign data to variables

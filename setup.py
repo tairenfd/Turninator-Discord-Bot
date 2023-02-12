@@ -13,10 +13,10 @@ setup(
     author_email="your.email@example.com",
     url="https://github.com/tairenfd/turninator",
     packages=find_packages("src"),
-    package_dir={"", "src"},
+    package_dir={"": "src"},
     include_package_data=True,
     install_requires=[
-        "discord.py==1.5.1",
+        "discord.py==2.1.1",
     ],
     extras_require={
         "dev": [],
@@ -27,7 +27,7 @@ setup(
     keywords="discord bot python",
     scripts=["src/bot.py"],
     entry_points={
-        "console_scripts": ["turninator = src.bot:main"],
+        "console_scripts": ["turninator = bot:main"],
     },
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 )

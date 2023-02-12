@@ -106,7 +106,7 @@ async def delete_mod_channels(guild: discord.Guild) -> None:
         - Parameter guild: Discord guild object
         - Return: None
     '''
-    category = discord.utils.get(guild.categories, name="Moderation Channels")
+    category = discord.utils.get(guild.categories, name="TURNINATOR Channels")
     if category is not None:
         for channel in category.channels:
             await channel.delete(reason="Deleting moderation channel")

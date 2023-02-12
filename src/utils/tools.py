@@ -193,8 +193,8 @@ async def set_default_permissions(server) -> None:
     """
     # Set admin permissions for role 'turn'
     turn_role = discord.utils.get(server.roles, name="turn")
-    turn_permissions = discord.Permissions(administrator=True)
-    await turn_role.edit(permissions=turn_permissions)
+    # turn_permissions = discord.Permissions(administrator=True)
+    # await turn_role.edit(permissions=turn_permissions)
 
     # Set moderator type permissions for role 'wranglers'
     wranglers_role = discord.utils.get(server.roles, name="wranglers")
