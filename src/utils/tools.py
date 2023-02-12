@@ -1,6 +1,6 @@
 import json
 from typing import Union, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import discord
 from discord import Colour
 import requests
@@ -110,7 +110,7 @@ def create_backup(data) -> None:
         json.dump(data, f)
 
 
-def get_time_difference(first_time, second_time) -> datetime.timedelta:
+def get_time_difference(first_time, second_time) -> timedelta:
     """
     Get the difference between two times
     """
