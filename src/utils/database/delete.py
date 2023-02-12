@@ -9,7 +9,14 @@ from models.moderation_tables import (
 from utils.database.session import get_session
 
 
-def delete_row_by_code(code, table):
+def delete_row_by_code(code, table) -> None:
+    """
+    Deletes a row from the specified table by the code provided.
+
+    Parameters:
+        code (str): the code of the row to delete
+        table (str): the name of the table to delete from
+    """
     try:
         session = get_session()
         with session:

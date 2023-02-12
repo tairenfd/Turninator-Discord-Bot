@@ -9,7 +9,15 @@ from models.moderation_tables import (
 from utils.database.session import get_session
 
 
-def update_row_by_code(code, new_value, table):
+def update_row_by_code(code: str, new_value: str, table: str) -> None:
+    """
+    Update a row in the specified moderation table by the given code.
+
+    Parameters:
+        code (str): The code of the row to update.
+        new_value (str): The new value to set for the row's reason or note field.
+        table (str): The name of the moderation table to update.
+    """
     session = get_session()
     if table == "automod_history":
         row = session.query(AutomodHistory).filter(AutomodHistory.code == code).first()

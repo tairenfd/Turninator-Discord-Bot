@@ -18,11 +18,13 @@ class Replies(commands.Cog):
         self.bot = bot
 
     @commands.hybrid_command(name="turn", description="turn", with_app_command=True)
-    async def turn(self, ctx: commands.Context):
+    async def turn(self, ctx: commands.Context) -> None:
+        """A simple command that sends 'fuck u'"""
         await ctx.send("fuck u")
 
     @commands.hybrid_command(description="turns links", with_app_command=True)
     async def links(self, ctx: commands.Context):
+        """A command that sends a list of Turn's links"""
         embed = create_embed(
             title="Turn's Links",
             description="",
@@ -35,7 +37,8 @@ class Replies(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(description="ultrared the pedo man", with_app_command=True)
-    async def ultrared(self, ctx: commands.Context):
+    async def ultrared(self, ctx: commands.Context) -> None:
+        """A command that generates AI response for Ultrared's quotes"""
         try:
             with open("commands/ultra_replies", "r") as file:
                 file_contents = file.read()
@@ -75,14 +78,16 @@ class Replies(commands.Cog):
         await ctx.send(embed=embed, file=file)
 
     @commands.hybrid_command(description="cock tierlist", with_app_command=True)
-    async def tierlist(self, ctx: commands.Context):
+    async def tierlist(self, ctx: commands.Context) -> None:
+        """A command that sends an image file"""
         await ctx.send(
             file=discord.File("images/tierlist.png", filename="tierlist.png")
         )
 
     @commands.hybrid_command(description="bot uptime", with_app_command=True)
     @commands.has_permissions(ban_members=True)
-    async def uptime(self, ctx: commands.Context):
+    async def uptime(self, ctx: commands.Context) -> None:
+        """A command that shows the bot's uptime"""        
         delta_uptime = get_time_difference(
             datetime.now(), self.bot.launchtime[ctx.guild.name]
         )
@@ -91,7 +96,8 @@ class Replies(commands.Cog):
         days, hours = divmod(hours, 24)
         await ctx.send(f"Running for {days}d, {hours}h, {minutes}m, {seconds}s")
 
-    async def handle_error(self, ctx: commands.Context, error: Exception):
+    async def handle_error(self, ctx: commands.Context, error: Exception) -> None:
+        """A function that handles errors for the Replies class"""
         if isinstance(error, commands.MissingPermissions):
             logger.INFO(
                 f"Insufficient role privileges. {ctx.author.name} tried {ctx.command_failed}"
@@ -105,17 +111,25 @@ class Replies(commands.Cog):
             await ctx.send(f"An unexpected error has occurred: {error}")
 
     @turn.error
-    async def turn_error(self, ctx: commands.Context, error: Exception):
+    async def turn_error(
+        self, ctx: commands.Context, error: Exception
+    ) -> None:
         self.handle_error(ctx, error)
 
     @ultrared.error
-    async def ultrared_error(self, ctx: commands.Context, error: Exception):
+    async def ultrared_error(
+        self, ctx: commands.Context, error: Exception
+    ) -> None:
         self.handle_error(ctx, error)
 
     @tierlist.error
-    async def tierlist_error(self, ctx: commands.Context, error: Exception):
+    async def tierlist_error(
+        self, ctx: commands.Context, error: Exception
+    ) -> None:
         self.handle_error(ctx, error)
 
     @uptime.error
-    async def uptime_error(self, ctx: commands.Context, error: Exception):
+    async def uptime_error(
+        self, ctx: commands.Context, error: Exception
+    ) -> None:
         self.handle_error(ctx, error)

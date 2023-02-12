@@ -13,7 +13,13 @@ url = sqlalchemy.engine.URL.create(
 )
 
 
-def get_session():
+def get_session() -> sqlalchemy.orm.Session:
+    """
+    Create and return a new SQLAlchemy ORM session connected to the database.
+
+    Returns:
+        A new SQLAlchemy ORM session connected to the database.
+    """
     engine = create_engine(url)
     Session = sessionmaker(bind=engine)
     session = Session()

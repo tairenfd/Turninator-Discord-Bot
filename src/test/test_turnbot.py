@@ -20,7 +20,13 @@ class TestTurnbot(unittest.TestCase):
         self.bot = Turnbot()
 
     @patch("discord.Client.login")
-    def test_on_ready(self, mock_login):
+    def test_on_ready(self, mock_login) -> None:
+        '''
+        This method tests the on_ready method of Turnbot class which is responsible for setting up the bot when it is ready to receive messages.
+
+        Parameters:
+            - mock_login: a patch object that mocks the Client.login method.
+        '''
         mock_login.return_value = None
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -38,7 +44,13 @@ class TestTurnbot(unittest.TestCase):
         self.assertEqual(self.logger.info.call_count, 1)
 
     @patch("discord.Client.login")
-    def test_setup_hook(self, mock_login):
+    def test_setup_hook(self, mock_login) -> None:
+        '''
+        This method tests the setup_hook method of Turnbot class which is responsible for setting up the bot after the bot is logged in and connected to Discord.
+
+        Parameters:
+            - mock_login: a patch object that mocks the Client.login method.
+        '''
         mock_login.return_value = None
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

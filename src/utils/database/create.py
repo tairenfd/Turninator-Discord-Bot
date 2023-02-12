@@ -9,7 +9,22 @@ from models.moderation_tables import (
 from utils.database.session import get_session
 
 
-def insert_row_into_table(user_id, moderator_id, server_id, reason, table):
+def insert_row_into_table(user_id: int,
+                          moderator_id: int,
+                          server_id: int,
+                          reason: str,
+                          table: str
+                          ) -> None:
+    """
+    Insert a new row in the specified table in the database.
+
+    Parameters:
+        - user_id (int): The ID of the user being added to the table.
+        - moderator_id (int): The ID of the moderator adding the user to the table.
+        - server_id (int): The ID of the server where the action took place.
+        - reason (str): The reason for the action taken on the user.
+        - table (str): The name of the table where the row should be inserted.
+    """
     try:
         session = get_session()
         with session:
