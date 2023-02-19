@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="turninator",
-    version="0.0.1",
+    version="0.0.2",
     description="Turn's Discord bot",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -17,12 +17,16 @@ setup(
     include_package_data=True,
     install_requires=[
         "discord.py==2.1.1",
+        "openai==0.26.5",
+        "PyMySQL==1.0.2",
+        "requests==2.28.2",
+        "SQLAlchemy==2.0.3"
     ],
     extras_require={
         "dev": [],
     },
     classifiers=[
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords="discord bot python",
     scripts=["src/bot.py"],

@@ -22,9 +22,35 @@ To install Turninator, you will need to have Python 3.6 or higher installed on y
 
 ## Usage
 
-To use Turninator, you will need to have the `Manage Server` permission in the server you wish to use it in.
+To use Turninator, you will need to have the `Manage Server` permission in the server you wish to add it in.
 
-Once the bot is added to the server and running, you can use the `!help` command to view a list of available commands. You can also use the `!help <command>` command to get more information about a specific command.
+Once the bot is added to the server and running, you can use the following commands:
+
+Replies commands:
+- `turn`: No arguments.
+- `links`: No arguments.
+- `ultrared`: Optional argument: `prompt`.
+- `tierlist`: No arguments.
+- `uptime`: No arguments. Requires `ban_members` permission.
+
+ModCommands:
+- `ban`: Arguments: `user` (discord.Member), `time` (str), `reason` (str) (optional), `clean` (int) (optional).
+- `unban`: Arguments: `user` (discord.User), `reason` (str) (optional).
+- `kick`: Arguments: `user` (discord.Member), `reason` (str) (optional).
+- `add_note`: Arguments: `user` (discord.User), `note` (str).
+- `delete_mod_channels`: No arguments.
+- `create_mod_channels`: No arguments.
+- `sync`: No arguments.
+- `get_perms`: Optional argument: `user` (discord.Member).
+- `rapsheet`: Optional argument: `user` (discord.User).
+- `history`: Arguments: `user` (discord.Member), `table` (str).
+- `last_entry`: Arguments: `user` (discord.Member), `table` (str).
+- `last_entry_all`: No arguments.
+- `set_perms`: Optional argument: `perms` (str).
+- `info`: Optional argument: `user` (discord.Member).
+- `clean`: Arguments: `limit` (int), `user` (discord.Member) (optional).
+
+You can use the `!help` command to view a list of available commands. You can also use the `!help <command>` command to get more information about a specific command.
 
 ## Contributing
 
