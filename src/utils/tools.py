@@ -160,8 +160,11 @@ def format_rows(rows, table=None) -> str:
             message = f"[{rows.code}] <t:{get_timestamp(rows.timestamp)}:d> - <@{rows.moderator_id}> -- {rows.reason}\n"
     else:
         for row in rows:
-            if row.code == get_last_BWK_from_all_tables_by_user(row.user_id).code:
-                flag = True
+            if get_last_BWK_from_all_tables_by_user(row.user_id, row.server_id) is not None:
+                if row.code == get_last_BWK_from_all_tables_by_user(row.user_id, row.server_id).code:
+                    flag = True
+                else:
+                    flag = False
             else:
                 flag = False
             if table == "automod_history":
@@ -191,77 +194,124 @@ async def set_default_permissions(server) -> None:
     """
     Sets default permissions for server roles
     """
-    # Set admin permissions for role 'turn'
-    turn_role = discord.utils.get(server.roles, name="turn")
-    # turn_permissions = discord.Permissions(administrator=True)
-    # await turn_role.edit(permissions=turn_permissions)
-
-    # Set moderator type permissions for role 'wranglers'
-    wranglers_role = discord.utils.get(server.roles, name="wranglers")
-    wranglers_permissions = discord.Permissions(
-        manage_messages=True,
-        kick_members=True,
+    moderator_permissions = discord.Permissions(
+        add_reactions=True,
+        administrator=False,
+        attach_files=True,
         ban_members=True,
-        manage_channels=True,
-        manage_roles=True,
-        read_messages=True,
-        send_messages=True,
+        change_nickname=True,
+        connect=True,
+        create_instant_invite=False,
+        create_private_threads=False,
+        create_public_threads=True,
+        deafen_members=True,
         embed_links=True,
-        attach_files=True,
-        read_message_history=True,
-    )
-    await wranglers_role.edit(permissions=wranglers_permissions)
-
-    # Set nsfw channel permissions for role 'friends'
-    friends_role = discord.utils.get(server.roles, name="friends")
-    friends_permissions = discord.Permissions(
-        read_messages=True,
-        send_messages=True,
+        kick_members=True,
+        manage_channels=False,
+        manage_emojis=False,
+        manage_emojis_and_stickers=False,
+        manage_events=False,
+        manage_guild=False,
         manage_messages=True,
-        embed_links=True,
-        attach_files=True,
-        read_message_history=True,
-        kick_members=False,
-        ban_members=False,
-        manage_channels=False,
+        manage_nicknames=False,
+        manage_permissions=False,
         manage_roles=False,
-    )
-    await friends_role.edit(permissions=friends_permissions)
-
-    # Set normal user permissions for everyone else
-    everyone_role = discord.utils.get(server.roles, name="@everyone")
-    everyone_permissions = discord.Permissions(
+        manage_threads=False,
+        manage_webhooks=False,
+        mention_everyone=False,
+        moderate_members=True,
+        move_members=True,
+        mute_members=True,
+        priority_speaker=False,
+        read_message_history=True,
         read_messages=True,
+        request_to_speak=False,
         send_messages=True,
-        embed_links=True,
-        attach_files=True,
-        read_message_history=True,
-        manage_messages=False,
-        kick_members=False,
-        ban_members=False,
-        manage_channels=False,
-        manage_roles=False,
+        send_messages_in_threads=True,
+        send_tts_messages=False,
+        speak=True,
+        stream=True,
+        use_application_commands=True,
+        use_embedded_activities=True,
+        use_external_emojis=True,
+        use_external_stickers=True,
+        use_voice_activation=True,
+        view_channel=True,
+        view_audit_log=True,
+        view_guild_insights=False
     )
-    await everyone_role.edit(permissions=everyone_permissions)
+
+    general_permissions = discord.Permissions(
+        add_reactions=True,
+        administrator=False,
+        attach_files=True,
+        ban_members=False,
+        change_nickname=True,
+        connect=True,
+        create_instant_invite=False,
+        create_private_threads=False,
+        create_public_threads=False,
+        deafen_members=False,
+        embed_links=True,
+        kick_members=False,
+        manage_channels=False,
+        manage_emojis=False,
+        manage_emojis_and_stickers=False,
+        manage_events=False,
+        manage_guild=False,
+        manage_messages=False,
+        manage_nicknames=False,
+        manage_permissions=False,
+        manage_roles=False,
+        manage_threads=False,
+        manage_webhooks=False,
+        mention_everyone=False,
+        moderate_members=False,
+        move_members=False,
+        mute_members=False,
+        priority_speaker=False,
+        read_message_history=True,
+        read_messages=True,
+        request_to_speak=False,
+        send_messages=True,
+        send_messages_in_threads=True,
+        send_tts_messages=False,
+        speak=True,
+        stream=True,
+        use_application_commands=True,
+        use_embedded_activities=True,
+        use_external_emojis=True,
+        use_external_stickers=True,
+        use_voice_activation=True,
+        view_channel=True,
+        view_audit_log=False,
+        view_guild_insights=False
+    )
+
+    turn_role = discord.utils.get(server.roles, name="turn")
+    wranglers_role = discord.utils.get(server.roles, name="wranglers")
+    friends_role = discord.utils.get(server.roles, name="friends")
+    everyone_role = discord.utils.get(server.roles, name="@everyone")
+
+    await wranglers_role.edit(permissions=moderator_permissions)
+    await friends_role.edit(permissions=general_permissions)
+    await everyone_role.edit(permissions=general_permissions)
 
     # Restrict normal users from entering nsfw channels
     for role in server.roles:
-        if role != turn_role and role != wranglers_role and role != friends_role:
+        if role != turn_role and role != wranglers_role:
             for channel in server.channels:
                 if channel.is_nsfw():
-                    await channel.set_permissions(
-                        role, read_messages=False, send_messages=False
-                    )
-
-    # Ensure @everyone doesnt have perms they shouldnt
-    everyone_permissions = discord.Permissions(
-        manage_messages=False,
-        kick_members=False,
-        ban_members=False,
-        manage_channels=False,
-        manage_roles=False,
-    )
-    await everyone_role.edit(permissions=everyone_permissions)
+                    if role == friends_role:
+                        await channel.set_permissions(
+                            target=friends_role,
+                            view_channel=True
+                        )
+                    elif role == everyone_role:
+                        await channel.set_permissions(
+                            target=everyone_role,
+                            view_channel=False
+                        )
 
 
 def get_permission_fields(user) -> discord.Embed:

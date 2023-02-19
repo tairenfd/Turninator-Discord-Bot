@@ -10,7 +10,7 @@ from utils.database.read import (
     get_last_BWK_from_all_tables_by_user,
 )
 from utils.database.create import insert_row_into_table
-from utils.logging import get_logger
+from utils.logging import get_logger, setup_logger
 from utils.tools import (
     create_embed,
     format_rows,
@@ -22,6 +22,7 @@ from utils.tools import (
     bulk_delete,
 )
 
+setup_logger("/home/central-turn/discord_services/turnbot/logs/", "commands.log")
 logger = get_logger("commands.log")
 
 
@@ -52,7 +53,7 @@ class ModCommands(commands.Cog):
         Example:
             - !ban @username 7 Offensive language 1
         """
-        if user.id == self.bot.owner_id or user == self.bot.user:
+        if user.id == ctx.guild.owner_id or user == self.bot.user:
             await ctx.send("Can not ban this user.")
             return
 
@@ -77,15 +78,18 @@ class ModCommands(commands.Cog):
         except ValueError as e:
             ctx.send(e)
 
-        await ctx.send(
-            f"User {user.mention} - {user.id} **BANNED** for {reason}.\nCleaned {clean} day(s) of messages by user."
-        )
-        await user.ban(reason=reason, delete_message_days=clean)
-        self.bot.loop.create_task(unbann(user, p_time))
-        insert_row_into_table(
-            user.id, ctx.author.id, ctx.guild.id, reason, "ban_history"
-        )
-        print(f"Entry for user [{user.name} - {user.id}] added to ban history")
+        msg = f"User {user.mention} - {user.id} **BANNED** for {reason}.\nCleaned {clean} day(s) of messages by user."
+
+        try:
+            await user.ban(reason=reason, delete_message_days=clean)
+            await ctx.send(msg)
+            self.bot.loop.create_task(unbann(user, p_time))
+            insert_row_into_table(
+                user.id, ctx.author.id, ctx.guild.id, reason, "ban_history", ban_time=p_time
+            )
+            print(f"Entry for user [{user.name} - {user.id}] added to ban history")
+        except Exception as error:
+            await self.handle_error(ctx, error)
 
     @commands.hybrid_command(name="unban", with_app_command=True)
     @commands.has_permissions(ban_members=True)
@@ -101,12 +105,15 @@ class ModCommands(commands.Cog):
         Example:
             - !unban @username he has been banned for 7 days
         """
-        await ctx.guild.unban(user=user, reason=reason)
-        await ctx.send(f"User <@{user.id}> unbanned by <@{ctx.author.id}>")
-        insert_row_into_table(
-            user.id, ctx.author.id, ctx.guild.id, reason, "unban_history"
-        )
-        print(f"Entry for user [{user.name} - {user.id}] added to unban history")
+        try:
+            await ctx.guild.unban(user=user, reason=reason)
+            await ctx.send(f"User <@{user.id}> unbanned by <@{ctx.author.id}>")
+            insert_row_into_table(
+                user.id, ctx.author.id, ctx.guild.id, reason, "unban_history"
+            )
+            print(f"Entry for user [{user.name} - {user.id}] added to unban history")
+        except Exception as error:
+            await self.handle_error(ctx, error)
 
     @commands.hybrid_command(name="kick")
     @commands.has_permissions(ban_members=True)
@@ -129,12 +136,16 @@ class ModCommands(commands.Cog):
             await ctx.send("Can not kick this user.")
             return
 
-        insert_row_into_table(
-            user.id, ctx.author.id, ctx.guild.id, reason, "kick_history"
-        )
-        await self.send(f"User {user.mention} - {user.id} **KICKED** for {reason}.")
-        await user.kick(reason=reason)
-        print(f"Entry for user [{user.name} - {user.id}] added to kick history")
+        msg = f"User {user.mention} - {user.id} **KICKED** for {reason}."
+        try:
+            await user.kick(reason=reason)
+            await ctx.send(msg)
+            insert_row_into_table(
+                user.id, ctx.author.id, ctx.guild.id, reason, "kick_history"
+            )
+            print(f"Entry for user [{user.name} - {user.id}] added to kick history")
+        except Exception as error:
+            await self.handle_error(ctx, error)
 
     @commands.hybrid_command(name="add_note")
     @commands.has_permissions(ban_members=True)
@@ -156,10 +167,13 @@ class ModCommands(commands.Cog):
             await ctx.send("You don't have permission to add notes")
             return
 
-        insert_row_into_table(
-            user.id, ctx.author.id, ctx.guild.id, note, "notes_history"
-        )
-        await ctx.send(f"Added note to user {user.mention} : {note}")
+        try:
+            insert_row_into_table(
+                user.id, ctx.author.id, ctx.guild.id, note, "notes_history"
+            )
+            await ctx.send(f"Added note to user {user.mention} : {note}")
+        except Exception as error:
+            await self.handle_error(ctx, error)
 
     # Delete the bot created moderation channels
     @commands.hybrid_command(name="delete_mod_channels")
@@ -215,6 +229,7 @@ class ModCommands(commands.Cog):
         logger.info(f"Tree synced for {ctx.guild.name}")
         print(f"Tree synced for {ctx.guild.name}")
         logger.info(f"Commands synced for {ctx.me} in {ctx.guild.name}")
+        await ctx.send(f"Commands synced for {ctx.me} in {ctx.guild.name} by {ctx.author}")
         print(f"Commands synced for {ctx.me} in {ctx.guild.name}")
 
     @commands.hybrid_command(name="get_perms")
@@ -252,7 +267,7 @@ class ModCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="rapsheet")
-    async def rapsheet(self, ctx, user: discord.Member = None) -> None:
+    async def rapsheet(self, ctx, user: discord.User = None) -> None:
         """
         Get a user's moderation history in the server.
 
@@ -308,7 +323,7 @@ class ModCommands(commands.Cog):
             return
 
         fields = []
-        last = get_last_BWK_from_all_tables_by_user(_user.id)
+        last = get_last_BWK_from_all_tables_by_user(_user.id, ctx.guild.id)
 
         if notes:
             notes_list = format_rows(notes, "notes_history")
@@ -425,12 +440,12 @@ class ModCommands(commands.Cog):
     ) -> None:
         """
         Get the last entry made in a specified table by a user in the server.
-        
+
         Parameters:
             ctx (discord.Context): The context of the message.
             user (discord.Member): The user to get the history entry for.
             table (str): The name of the table to get the entry from.
-        
+
         Example:
             !last_entry @user warning_history
         """
@@ -505,8 +520,11 @@ class ModCommands(commands.Cog):
             !set_perms default
         """
         if perms == "default":
-            await set_default_permissions(ctx.guild)
-            await ctx.send(f"Default server permissions set by {ctx.author.mention}")
+            try:
+                await set_default_permissions(ctx.guild)
+                await ctx.send(f"Default server permissions set by {ctx.author.mention}")
+            except Exception as error:
+                await self.handle_error(ctx, error)
 
     @commands.hybrid_command(name="info")
     @commands.has_permissions(ban_members=True)
@@ -576,3 +594,236 @@ class ModCommands(commands.Cog):
             msg += f" by {user.mention}."
         msg += "."
         await ctx.send(msg)
+
+    @commands.hybrid_command(name='role')
+    @commands.has_permissions(manage_roles=True)
+    async def edit_role(self, ctx, action: str, member: discord.Member, *, roles: str):
+        '''
+        Add or remove roles from a member.
+
+        Parameters:
+            ctx (discord.Context): The context of the message
+            action: add or remove (rm is an alias for remove)
+            member (discord.Member): The user to target for role 
+                change
+            roles: roles to add or change seperated by commas
+        Example:
+            !role add @user Moderator, NSFW
+            !role rm @user NSFW
+        '''
+        role_list = roles.replace(' ', '').split(',')
+        not_exist_guild = []
+        not_exist_member = []
+        added = []
+        removed = []
+        no_change = []
+
+        if not role_list:
+            ctx.send('Missing "roles" argument')
+            return
+
+        guild_roles = [role.name for role in ctx.guild.roles]
+        member_roles = [role.name for role in member.roles]
+
+        try:
+            not_exist_guild = [
+                role for role in role_list if role not in guild_roles
+            ]
+
+            if action.lower() == 'add':
+                added = [
+                    role for role in role_list if role in guild_roles and role not in member_roles
+                ]
+                no_change = [
+                    role for role in role_list if role in guild_roles and role in member_roles
+                ]
+                removed = []
+                not_exist_member = []
+            elif action.lower() in ['rm', 'remove']:
+                removed = [
+                    role for role in role_list if role in guild_roles and role in member_roles
+                ]
+                not_exist_member = [
+                    role for role in role_list if role not in member_roles
+                ]
+                added = []
+                no_change = []
+            else:
+                raise ValueError(
+                    'Invalid action (available: "add", "rm", "remove")'
+                )
+
+        except Exception as error:
+            await self.handle_error(ctx, error)
+
+        fields = []
+        if added:
+            fields.append(('Roles added:', '\n'.join(added), False))
+        if removed:
+            fields.append(('Roles removed:', '\n'.join(removed), False))
+        if no_change:
+            fields.append(
+                ('Role already existed:', '\n'.join(no_change), False)
+            )
+        if not_exist_guild:
+            fields.append(
+                ('Roles dont exist in guild:',
+                 '\n'.join(not_exist_guild),
+                 True
+                 )
+            )
+        if not_exist_member:
+            fields.append(
+                ('User doesnt have roles:', '\n'.join(not_exist_member), True)
+            )
+
+        reason = f'Roles changed for ID#{member.id} by {ctx.author.name}'
+
+        if added:
+            for add in added:
+                add = discord.utils.get(ctx.guild.roles, name=add)
+                await member.add_roles(add, reason=reason)
+        if removed:
+            for rm in removed:
+                rm = discord.utils.get(ctx.guild.roles, name=rm)
+                await member.remove_roles(rm, reason=reason)
+
+        embed = create_embed(
+            title=f'Changes to roles for {member.name}',
+            colour=discord.Color.random(),
+            thumbnail=member.avatar.url,
+            author=reason,
+            fields=fields
+        )
+
+        await ctx.send(embed=embed)
+
+    async def handle_error(self, ctx: commands.Context, error):
+        if isinstance(error, commands.errors.CommandNotFound):
+            await ctx.send("Invalid command.")
+        elif isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.send("Missing required argument.")
+        elif isinstance(error, commands.errors.BadArgument):
+            await ctx.send("Invalid argument.")
+        elif isinstance(error, commands.errors.CheckFailure):
+            await ctx.send("You do not have permission to use this command.")
+        elif isinstance(error, commands.errors.MissingPermissions):
+            await ctx.send("You do not have permission to use this command.")
+        elif isinstance(error, commands.errors.RoleNotFound):
+            await ctx.send("Role not found.")
+        elif isinstance(error, commands.errors.MissingRole):
+            await ctx.send("Role not permitted to use this command.")
+        elif isinstance(error, commands.errors.RoleNotFound):
+            await ctx.send("Role not found.")
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send("Bad argument provided.")
+        elif isinstance(error, commands.MissingPermissions):
+            await ctx.send(
+                "You do not have the required permissions to use this command."
+            )
+        elif isinstance(error, commands.BotMissingPermissions):
+            await ctx.send(
+                "I do not have the required permissions to use this command."
+            )
+        elif isinstance(error, commands.NotOwner):
+            await ctx.send(
+                "You do not have the required permissions to use this command."
+            )
+        else:
+            if str(error.args).find('50013'):
+                await ctx.send(
+                    "You do not have permission to use this command."
+                )
+            else:
+                await ctx.send(f"An error occurred: {error}")
+            print(f"An error occurred: {error}")
+
+    # @rapsheet.error
+    # async def rapsheet_error(
+    #     self, ctx: commands.Context, error
+    # ) -> None:
+    #     await self.handle_error(ctx, error)
+
+    @kick.error
+    async def kick_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @ban.error
+    async def ban_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @add_note.error
+    async def add_note_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @clean.error
+    async def clean_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @get_member_info.error
+    async def get_member_info_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @last_entry.error
+    async def last_entry_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @last_history.error
+    async def last_history_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @set_perms.error
+    async def set_perms_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @get_perms.error
+    async def get_perms_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @create_turninator_channels.error
+    async def create_inator_channels_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @delete_turninator_channels.error
+    async def delete_inator_channels_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @sync_commands.error
+    async def sync_commands_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    @history.error
+    async def history_error(
+        self, ctx: commands.Context, error
+    ) -> None:
+        await self.handle_error(ctx, error)
+
+    # @edit_role.error
+    # async def edit_role_error(
+    #     self, ctx: commands.Context, error
+    # ) -> None:
+    #     await self.handle_error(ctx, error)

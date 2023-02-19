@@ -10,7 +10,7 @@ from events.on_join_create import CreateChannels
 from events.on_mod_action import ModActions
 from utils.logging import get_logger, setup_logger
 
-setup_logger("logs", "bot.log")
+setup_logger("/home/central-turn/discord_services/turnbot/logs", "bot.log")
 
 logger = get_logger("bot.log")
 

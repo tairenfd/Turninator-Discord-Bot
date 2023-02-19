@@ -29,5 +29,5 @@ setup(
     entry_points={
         "console_scripts": ["turninator = bot:main"],
     },
-    python_requires=">=3.10",
+    python_requires=">=3.9",
 )

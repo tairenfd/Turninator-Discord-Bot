@@ -11,7 +11,12 @@
     "password": "secretpassword",
     "database": "database"
   },
-  "openai" {
+  "openai": {
   	"openai_key": "openai api key"
+  },
+  "dirs": {
+    "images_dir": "directory for images",
+    "config_dir": "config directory"
+    "ultra_dir": "ultra bot files"
   }
 }

@@ -1,10 +1,8 @@
 from datetime import datetime
-
 import discord
 import openai
 from discord.ext import commands
-
-from config.config import openai_key
+from config.config import openai_key, images_dir, ultra_dir
 from utils.logging import get_logger
 from utils.tools import create_embed, get_time_difference
 
@@ -39,36 +37,29 @@ class Replies(commands.Cog):
     @commands.hybrid_command(description="ultrared the pedo man", with_app_command=True)
     async def ultrared(self, ctx: commands.Context) -> None:
         """A command that generates AI response for Ultrared's quotes"""
-        try:
-            with open("src/commands/ultra_replies", "r") as file:
-                file_contents = file.read()
-        except Exception as e:
-            logger.info(f"Something went wrong. Error: {e}")
-            print(f"Something went wrong. Error: {e}")
+
+        CURRENT_PROMPT = f"{ctx.message.content.replace('!ultrared ', '')}"
+
+        with open(f"{ultra_dir}ultra_prompt", "r") as file:
+            file_contents = file.read()
 
         response = openai.Completion.create(
             model="text-davinci-003",
             prompt=f"""
-                The quotes provided below are statements made by 'ultrared'. You will respond
-                to all prompts as if they are statements being asked/said to
-                'ultrared' by the user, and you will act as 'ultrared'. Use
-                the quotes provided as a basis for your personality and belief
-                system as much as possible,  but you dont have to be strictly
-                bound by them.
+                {file_contents}
 
-                Quotes:
-                    {file_contents}
-
-
-                Prompt from user:
-                    {ctx.message.content.replace('!ultrared', '')}
-
+                CURRENT_PROMPT: f'"{CURRENT_PROMPT}"'
             """,
             temperature=1,
-            max_tokens=2000,
+            max_tokens=150,
         )
-        content = response.choices[0]["text"]
-        file = discord.File("src/images/ultrared.png", filename="ultrared.png")
+
+        with open(f"{ultra_dir}ultra_history", "a") as file:
+            history_string = f'from: {ctx.author.name} -- ' + '{"prompt": ' + f'"{CURRENT_PROMPT} ->" ' + '"completion": ' + f'"{response}"' + '}'
+            file.write(history_string)
+
+        content = response.choices[0]["text"].replace('-> ', '').replace('completion: ', '').replace('Completion: ', '').strip()
+        file = discord.File(f"{images_dir}ultrared.png", filename="ultrared.png")
         embed = create_embed(
             title="Ultrared AI",
             description=content,
@@ -81,13 +72,13 @@ class Replies(commands.Cog):
     async def tierlist(self, ctx: commands.Context) -> None:
         """A command that sends an image file"""
         await ctx.send(
-            file=discord.File("src/images/tierlist.png", filename="tierlist.png")
+            file=discord.File(f"{images_dir}tierlist.png", filename="tierlist.png")
         )
 
     @commands.hybrid_command(description="bot uptime", with_app_command=True)
     @commands.has_permissions(ban_members=True)
     async def uptime(self, ctx: commands.Context) -> None:
-        """A command that shows the bot's uptime"""        
+        """A command that shows the bot's uptime"""
         delta_uptime = get_time_difference(
             datetime.now(), self.bot.launchtime[ctx.guild.name]
         )
@@ -96,40 +87,52 @@ class Replies(commands.Cog):
         days, hours = divmod(hours, 24)
         await ctx.send(f"Running for {days}d, {hours}h, {minutes}m, {seconds}s")
 
-    async def handle_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def handle_error(self, ctx: commands.Context, error) -> None:
         """A function that handles errors for the Replies class"""
         if isinstance(error, commands.MissingPermissions):
-            logger.INFO(
+            logger.info(
                 f"Insufficient role privileges. {ctx.author.name} tried {ctx.command_failed}"
             )
             await ctx.send("Insufficient role privileges.")
         elif isinstance(error, discord.DiscordException):
-            logger.INFO(f"Error: Could not send file. {error}")
+            logger.info(f"Error: Could not send file. {error}")
             await ctx.send(f"Error: Could not send file. {error}")
         elif isinstance(error, Exception):
-            logger.INFO(f"An unexpected error has occurred: {error}")
+            logger.info(f"An unexpected error has occurred: {error}")
             await ctx.send(f"An unexpected error has occurred: {error}")
+        elif isinstance(error, openai.error.APIError):
+            logger.info(f"OpenAI API returned an API Error - {error}")
+            await ctx.send(f"OpenAI API returned an API Error - {error}")
+        elif isinstance(error, openai.error.APIConnectionError):
+            logger.info(f"Failed to connect to OpenAI API - {error}")
+            await ctx.send(f"Failed to connect to OpenAI API - {error}")
+        elif isinstance(error, openai.error.RateLimitError):
+            logger.info(f"OpenAI API request exceeded rate limit - {error}")
+            await ctx.send(f"OpenAI API request exceeded rate limit - {error}")
+        else:
+            logger.info(f"Error: {error}")
+            await ctx.send(f"Error: {error}")
 
     @turn.error
     async def turn_error(
-        self, ctx: commands.Context, error: Exception
+        self, ctx: commands.Context, error
     ) -> None:
-        self.handle_error(ctx, error)
+        await self.handle_error(ctx, error)
 
     @ultrared.error
     async def ultrared_error(
-        self, ctx: commands.Context, error: Exception
+        self, ctx: commands.Context, error
     ) -> None:
-        self.handle_error(ctx, error)
+        await self.handle_error(ctx, error)
 
     @tierlist.error
     async def tierlist_error(
-        self, ctx: commands.Context, error: Exception
+        self, ctx: commands.Context, error
     ) -> None:
-        self.handle_error(ctx, error)
+        await self.handle_error(ctx, error)
 
     @uptime.error
     async def uptime_error(
-        self, ctx: commands.Context, error: Exception
+        self, ctx: commands.Context, error
     ) -> None:
-        self.handle_error(ctx, error)
+        await self.handle_error(ctx, error)

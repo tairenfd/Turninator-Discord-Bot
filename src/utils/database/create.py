@@ -13,7 +13,8 @@ def insert_row_into_table(user_id: int,
                           moderator_id: int,
                           server_id: int,
                           reason: str,
-                          table: str
+                          table: str,
+                          ban_time: int = 0
                           ) -> None:
     """
     Insert a new row in the specified table in the database.
@@ -58,6 +59,7 @@ def insert_row_into_table(user_id: int,
                     moderator_id=moderator_id,
                     server_id=server_id,
                     reason=reason,
+                    ban_time=ban_time
                 )
                 session.add(row)
             elif table == "unban_history":

@@ -29,7 +29,7 @@ import json
 '''
 
 # load json data
-with open("src/config/config.json") as f:
+with open("/home/central-turn/discord_services/turnbot/src/config/config.json") as f:
     data = json.load(f)
 
 # assign data to variables
@@ -44,3 +44,6 @@ sql_password = data["database"]["password"]
 sql_database = data["database"]["database"]
 
 openai_key = data["openai"]["openai_key"]
+
+images_dir = data["dirs"]["images_dir"]
+ultra_dir = data["dirs"]["ultra_dir"]

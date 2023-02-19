@@ -4,13 +4,14 @@ import discord
 from utils.logging import get_logger, setup_logger
 from utils.tools import create_embed, get_timestamp
 
-setup_logger("logs", "mod_events.log")
+setup_logger("/home/central-turn/discord_services/turnbot/logs", "mod_events.log")
 logger = get_logger("mod_events.log")
 
 
 class ModActions(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        super().__init__()
 
     async def log_event(
         self, 

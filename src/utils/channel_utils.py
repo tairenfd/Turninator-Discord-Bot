@@ -1,7 +1,7 @@
 import discord
 from utils.logging import get_logger, setup_logger
 
-setup_logger("logs", "mod_events.log")
+setup_logger("/home/central-turn/discord_services/turnbot/logs", "mod_events.log")
 logger = get_logger("mod_events.log")
 
 

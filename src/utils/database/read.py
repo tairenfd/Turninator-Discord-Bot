@@ -429,7 +429,7 @@ def get_last_row_from_all_tables_by_user(user_id: str):
     return last_row
 
 
-def get_last_BWK_from_all_tables_by_user(user_id: str):
+def get_last_BWK_from_all_tables_by_user(user_id: str, server_id: int):
     """
     Retrieve the last ban, warning, or kick row from all tables in the 
         database for a given user ID.
@@ -444,19 +444,28 @@ def get_last_BWK_from_all_tables_by_user(user_id: str):
         with session:
             kick_row = (
                 session.query(KickHistory)
-                .filter(KickHistory.user_id == user_id)
+                .filter(
+                    KickHistory.user_id == user_id,
+                    KickHistory.server_id == server_id
+                )
                 .order_by(KickHistory.timestamp.desc())
                 .first()
             )
             warning_row = (
                 session.query(WarningHistory)
-                .filter(WarningHistory.user_id == user_id)
+                .filter(
+                    WarningHistory.user_id == user_id,
+                    WarningHistory.server_id == server_id
+                )
                 .order_by(WarningHistory.timestamp.desc())
                 .first()
             )
             ban_row = (
                 session.query(BanHistory)
-                .filter(BanHistory.user_id == user_id)
+                .filter(
+                    BanHistory.user_id == user_id,
+                    BanHistory.server_id == server_id,
+                )
                 .order_by(BanHistory.timestamp.desc())
                 .first()
             )
