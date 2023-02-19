@@ -26,14 +26,14 @@ To use Turninator, you will need to have the `Manage Server` permission in the s
 
 Once the bot is added to the server and running, you can use the following commands:
 
-Replies commands:
+### Reply commands:
 - `turn`: No arguments.
 - `links`: No arguments.
 - `ultrared`: Optional argument: `prompt`.
 - `tierlist`: No arguments.
 - `uptime`: No arguments. Requires `ban_members` permission.
 
-ModCommands:
+### ModCommands:
 - `ban`: Arguments: `user` (discord.Member), `time` (str), `reason` (str) (optional), `clean` (int) (optional).
 - `unban`: Arguments: `user` (discord.User), `reason` (str) (optional).
 - `kick`: Arguments: `user` (discord.Member), `reason` (str) (optional).
@@ -59,3 +59,9 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+* Thanks to Ultrared for the inspiration and quotes used in the AI response command.
+* Thanks to the discord.py developers for the excellent library.
+* Thanks to the contributors of the various packages used in this project.
